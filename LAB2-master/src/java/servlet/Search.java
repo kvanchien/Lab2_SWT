@@ -1,0 +1,115 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ */
+package servlet;
+
+import dao.*;
+import model.*;
+import java.io.IOException;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+/**
+ *
+ * @author Asus
+ */
+@WebServlet(name = "Search", urlPatterns = {"/Search"})
+public class Search extends HttpServlet {
+    private final String TITLE_VAR = "title";
+    private final String NEWS_LIST = "news_list";
+    private final String USER_LIST = "user_list";
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            String title = request.getParameter(TITLE_VAR);
+            Logger logger = Logger.getLogger(title);
+            logger.log(Level.INFO, title);
+            String rawCategoryId = request.getParameter("cat_id");
+
+            if (title == null || title.trim().length() == 0) {//if user entered no title in search bar
+                if (rawCategoryId == null) {
+                    request.getRequestDispatcher("GetListNews");   //if user did NOT chose a category choice  
+                } else {//if category id is given
+                    searchByCategory(request, response, Integer.parseInt(rawCategoryId));//find by category id
+                }
+            } else {//if user DID entered a title in search bar
+                if (rawCategoryId == null) {//if user did NOT chose a category choice 
+                    searchByTitle(request, response, title);//find by title
+                } else {//if user did choose a category and entered in a title
+                    searchByTitleAndCateogory(request, response, title, Integer.parseInt(rawCategoryId));
+                }
+            }
+        } catch (Exception e) {
+            Logger logger = Logger.getLogger(Search.class.getName());
+            logger.log(Level.INFO, "Exception");
+        }
+    }
+
+    private void searchByTitle(HttpServletRequest request, HttpServletResponse response, String title) {
+        try {
+            NewsDAO newsDAO = new NewsDAO();
+            userDAO userDAO = new userDAO();
+
+            ArrayList<News> listNews = newsDAO.searchTitle(title);
+            HashMap<Integer, User> listUser = userDAO.getAllUser();
+
+            request.setAttribute(NEWS_LIST, listNews);
+            request.setAttribute(USER_LIST, listUser);
+            request.setAttribute(TITLE_VAR, title);
+
+            request.getRequestDispatcher("searchResult.jsp").forward(request, response);
+        } catch (Exception e) {
+            Logger logger = Logger.getLogger(Search.class.getName());
+            logger.log(Level.INFO, "Exception");
+        }
+    }
+
+    private void searchByCategory(HttpServletRequest request, HttpServletResponse response, int cat_id) {
+        try {
+            NewsDAO newsDAO = new NewsDAO();
+            userDAO userDAO = new userDAO();
+
+            ArrayList<News> news_list = newsDAO.searchCategory(cat_id);
+            HashMap<Integer, User> user_list = userDAO.getAllUser();
+
+            request.setAttribute(NEWS_LIST, news_list);
+            request.setAttribute(USER_LIST, user_list);
+
+            request.getRequestDispatcher("Category.jsp").forward(request, response);
+        } catch (Exception e) {
+            Logger logger = Logger.getLogger(Search.class.getName());
+            logger.log(Level.INFO, "Exception");
+        }
+    }
+
+    private void searchByTitleAndCateogory(HttpServletRequest request, HttpServletResponse response, String title, int cat_id) {
+        try {
+            NewsDAO newsDAO = new NewsDAO();
+            userDAO userDAO = new userDAO();
+
+            ArrayList<News> news_list = newsDAO.searchTitleCat(title, cat_id);
+            HashMap<Integer, User> user_list = userDAO.getAllUser();
+
+            request.setAttribute(NEWS_LIST, news_list);
+            request.setAttribute(USER_LIST, user_list);
+            request.setAttribute(TITLE_VAR, title);
+
+            request.getRequestDispatcher("searchResult.jsp").forward(request, response);
+        } catch (Exception e) {
+            Logger logger = Logger.getLogger(Search.class.getName());
+            logger.log(Level.INFO, "ERROR SEARCHING NEWS BY TITLE AND CATEGORY");
+        }
+    }
+
+
+}
