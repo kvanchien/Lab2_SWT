@@ -1,4 +1,5 @@
 package dao;
+
 import dao.DBContext;
 import java.util.ArrayList;
 import model.Category;
@@ -13,96 +14,63 @@ import java.util.logging.Logger;
  */
 public class catDAO {
 
-    public HashMap<Integer, Category> getAllCategorys() {
+    public HashMap<Integer, Category> getAllCategories() throws Exception {
         HashMap<Integer, Category> categoryList = new HashMap<>();
-        try {
-            DBContext db = new DBContext();
-            Connection con = db.getConnection();
-            if (con != null) {
-                Statement st = con.createStatement();
-                String sql = "Select * from Category ";
-                ResultSet rs = st.executeQuery(sql);
-                while (rs.next()) {
-                    Category cat = new Category(rs.getInt("Cat_id"), rs.getNString("Cat_name"), rs.getNString("Cat_description"));
-                    categoryList.put(cat.getId(), cat);
-                }
-                rs.close();
-                st.close();
-                con.close();
+
+        try (Connection con = new DBContext().getConnection(); Statement st = con.createStatement(); ResultSet rs = st.executeQuery("SELECT * FROM Category")) {
+
+            while (rs.next()) {
+                Category cat = new Category(rs.getInt("Cat_id"), rs.getNString("Cat_name"), rs.getNString("Cat_description"));
+                categoryList.put(cat.getId(), cat);
             }
-        } catch (Exception e) {
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
         return categoryList;
     }
 
-    public Category getCategory(int id){
-        Category cat =new Category();
-        try {
-            DBContext db = new DBContext();
-            Connection con = db.getConnection();
-            if (con != null) {
-                Statement st = con.createStatement();
-                String sql = "Select * from Category where Cat_id = "+id;
-                ResultSet rs = st.executeQuery(sql);
-                while (rs.next()) {             //needed even if just 1 row       
-                    cat.setId(id);
-                    cat.setName(rs.getString("Cat_name"));
-                    cat.setDes(rs.getNString("Cat_description"));
-                }
-                st.close();
+    public Category getCategory(int id) throws Exception {
+        Category cat = null;
+
+        try (Connection con = new DBContext().getConnection(); PreparedStatement ps = con.prepareStatement("SELECT * FROM Category WHERE Cat_id = ?");) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                cat = new Category(id, rs.getNString("Cat_name"), rs.getNString("Cat_description"));
             }
-            con.close();
-        }catch(Exception e){
-            Logger logger = Logger.getLogger(catDAO.class.getName());
+        } catch (SQLException e) {
+            Logger logger = Logger.getLogger(Category.class.getName());
             logger.log(Level.INFO, e.getMessage());
         }
+
         return cat;
     }
-    public boolean insertCategorys(Category cat) {
-        try {
-            DBContext db = new DBContext();
-            Connection con = db.getConnection();
-            if (con != null) {
-                String sql = "{call insertCate(?,?)}";
-                CallableStatement call = con.prepareCall(sql);
-                call.setNString(1, cat.getName());
-                call.setNString(2, cat.getDes());
-                if(call.executeUpdate()<=0) throw new Exception();
-                call.close();
-                con.close();
-                return true;
-            }
-        } catch (Exception e) {
-            Logger logger = Logger.getLogger(catDAO.class.getName());
+
+    public boolean insertCategory(Category cat) throws Exception {
+        try (Connection con = new DBContext().getConnection(); CallableStatement call = con.prepareCall("{call insertCate(?,?)}");) {
+            call.setNString(1, cat.getName());
+            call.setNString(2, cat.getDes());
+            int affectedRows = call.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            Logger logger = Logger.getLogger(Category.class.getName());
             logger.log(Level.INFO, e.getMessage());
         }
         return false;
     }
-    public boolean delCategory(int id){
-        try {
-            DBContext db = new DBContext();
-            Connection con = db.getConnection();
-            if(con!=null){
-                String sql = "{call delCate(?)}";
-                CallableStatement call = con.prepareCall(sql);
-                call.setInt(1, id);
-                if(call.executeUpdate()<=0) throw new Exception();
-                call.close();
-                con.close();
-                return true;
-            }
-        } catch (Exception e) {
-            Logger logger = Logger.getLogger(catDAO.class.getName());
+
+    public boolean deleteCategory(int id) throws Exception {
+        try (Connection con = new DBContext().getConnection(); CallableStatement call = con.prepareCall("{call delCate(?)}")) {
+            call.setInt(1, id);
+            int affectedRows = call.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            Logger logger = Logger.getLogger(Category.class.getName());
             logger.log(Level.WARNING, e.getMessage());
         }
         return false;
     }
-    public static void main(String[] args) {
-        Logger logger = Logger.getLogger(catDAO.class.getName());
-        catDAO dao = new catDAO();
-        dao.insertCategorys(new Category(1, "descrip", "hiep"));
-        Category cat = dao.getCategory(0);
-        logger.log(Level.INFO, cat.getDes());
-        dao.delCategory(1);
-    }
+
 }

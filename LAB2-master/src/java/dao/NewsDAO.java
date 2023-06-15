@@ -189,7 +189,7 @@ public class NewsDAO {
                 }
             }
         } catch (SQLException e) {
-
+            e.printStackTrace();
         }
         return listNews;
     }
@@ -217,7 +217,7 @@ public class NewsDAO {
                 }
             }
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
         return listNews;
     }
@@ -245,7 +245,7 @@ public class NewsDAO {
                 }
             }
         } catch (SQLException e) {
-
+            e.printStackTrace();
         }
         return listNews;
     }

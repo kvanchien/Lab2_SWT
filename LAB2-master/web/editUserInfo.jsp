@@ -37,6 +37,8 @@
                     <div class="col-md-6 user-info-detail">
                         <div class="user-info-detail-body">
                             <table>
+                                <caption></caption>
+                                <th></th>
                                 <tr>
                                     <td>Id:</td>
                                     <td><input type="text" name ="id" value="${user.getId()}" readonly><br></td>

@@ -43,10 +43,10 @@
                             HashMap<Integer,Category> cat_name = (HashMap<Integer,Category>) session.getAttribute("cat_list");
                             for (int key : cat_name.keySet()) {
                         %>
-                        <div class="nav-item">
+                        <li class="nav-item">
                             <a class="nav-link hover-animation-underline" href="Search?cat_id=<%= cat_name.get(key).getId() %>">
                                 <%= cat_name.get(key).getName()%></a>
-                        </div>
+                        </li>
                         <%}%>
                     </ul>
                 </div>
@@ -186,9 +186,11 @@
                         <input type="text" style="display: none" name="action" value="insert">
                         <c:set var="value" value=""/>
                     </c:if>
-                    <input type="text" style="display: none" name="news_id" value=<%= news.getNews_id() %>>
+                    <input type="text" style="display: none" name="news_id" value="<%= news.getNews_id() %>">
                     <h3>Comment(<c:out value="${requestScope.listComments.size()}"/>)</h3>
                     <table>
+<!--                        <caption>Header</caption>
+                        <th>Header</th>-->
                         <div class="container">
                             <div class="row comment-box-text">
                                 <textarea class="news-content-text" type="text" name="comment_content" placeholder="Type a comment..." rows="4" onclick="checkSession()" required="">${value}</textarea>
